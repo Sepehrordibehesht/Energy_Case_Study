@@ -46,7 +46,7 @@ class House:
         self.df = pd.DataFrame({
             "time": hours,
             "energy_consumption_Wh": hourly_final,
-            "solar_production_Wh": 0,          # will fill if has_solar
+            "solar_production_Wh": 0, 
             "ev_charge_Wh": np.nan            
         })
 

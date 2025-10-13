@@ -3,6 +3,7 @@ import random
 from house import House
 from car import Car
 from data_frames import hourly_data_solar
+import matplotlib.pyplot as plt
 
 # ---------------------------
 # 1️⃣ Create 100 houses
@@ -108,6 +109,85 @@ for hour in range(168):
 # (optional) After-sim: inspect results
 # ---------------------------
 if __name__ == "__main__":
-    # quick checks
-    print("Sample house ev df (house 1):")
-    print(houses[54].df.head(30))
+    # compute scalar totals (Wh) across houses
+    total_all_Wh = sum(house.df["energy_consumption_Wh"].sum() for house in houses)
+    total_smart_Wh = sum(house.df["energy_consumption_Wh"].sum() for house in houses if house.ev_type == "Smart")
+    total_non_smart_Wh = sum(house.df["energy_consumption_Wh"].sum() for house in houses if house.ev_type == "Non-Smart")
+    total_no_ev_Wh = sum(house.df["energy_consumption_Wh"].sum() for house in houses if house.ev is None)
+
+    print(f"Total all houses: {total_all_Wh} Wh ({total_all_Wh/1000:.1f} kWh)")
+    print(f"Total houses with Smart EVs: {total_smart_Wh} Wh ({total_smart_Wh/1000:.1f} kWh)")
+    print(f"Total houses with Non‑Smart EVs: {total_non_smart_Wh} Wh ({total_non_smart_Wh/1000:.1f} kWh)")
+    print(f"Total houses with no EV: {total_no_ev_Wh} Wh ({total_no_ev_Wh/1000:.1f} kWh)")
+
+    #total energy consumed in peak hours (6-8 am and 6-9 pm) for all houses
+    peak_hours = list(range(6, 9)) + list(range(18, 22))
+    total_peak_Wh = sum(house.df[house.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for house in houses)
+    print(f"Total energy consumed in peak hours by all houses(6-8 am and 6-9 pm): {total_peak_Wh} Wh ({total_peak_Wh/1000:.1f} kWh)")
+    #total energy consumed in peak hours (6-8 am and 6-9 pm) for smart ev houses
+    total_peak_smart_Wh = sum(house.df[house.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for house in houses if house.ev_type == "Smart")
+    print(f"Total energy consumed in peak hours by smart ev houses(6-8 am and 6-9 pm): {total_peak_smart_Wh} Wh ({total_peak_smart_Wh/1000:.1f} kWh)")
+    #total energy consumed in peak hours (6-8 am and 6-9 pm) for non-smart ev houses
+    total_peak_non_smart_Wh = sum(house.df[house.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for house in houses if house.ev_type == "Non-Smart")
+    print(f"Total energy consumed in peak hours by non-smart ev houses(6-8 am and 6-9 pm): {total_peak_non_smart_Wh} Wh ({total_peak_non_smart_Wh/1000:.1f} kWh)")
+    
+    #total energy from solar power consumed for charging evs in solar houses
+    total_solar_ev_Wh = 0
+    for house in solar_houses:
+        if house.ev is not None and house.ev_type == "Smart" and house.ev.connected:
+            for hour in range(168):
+                if house.df.loc[hour, "ev_charge_Wh"] < house.ev.capacity:
+                    solar_used = min(house.df.loc[hour, "solar_production_Wh"], house.ev.power)
+                    total_solar_ev_Wh += solar_used
+    print(f"Total energy from solar power consumed for charging smart evs in solar houses: {total_solar_ev_Wh} Wh ({total_solar_ev_Wh/1000:.1f} kWh)")
+
+    #Now we choose one day and make a bar chart for 24 hours of energy consumption of all houses, smart ev houses, non-smart ev houses, and no ev houses
+    day = 2  # choose day 2 (0-based index)
+    start_hour = day * 24
+    end_hour = start_hour + 24
+    hours = list(range(24))
+
+    # compute per-hour totals (sum across houses) for each of the 24 hours
+    all_consumption = [
+        sum(house.df.loc[start_hour + h, "energy_consumption_Wh"] for house in houses)
+        for h in hours
+    ]
+    smart_consumption = [
+        sum(house.df.loc[start_hour + h, "energy_consumption_Wh"] for house in houses if house.ev_type == "Smart")
+        for h in hours
+    ]
+    non_smart_consumption = [
+        sum(house.df.loc[start_hour + h, "energy_consumption_Wh"] for house in houses if house.ev_type == "Non-Smart")
+        for h in hours
+    ]
+    no_ev_consumption = [
+        sum(house.df.loc[start_hour + h, "energy_consumption_Wh"] for house in houses if house.ev is None)
+        for h in hours
+    ]
+
+    solar_houses_consumption = [
+        sum(house.df.loc[start_hour + h, "energy_consumption_Wh"] for house in solar_houses)
+        for h in hours
+    ]
+
+    non_solar_houses = [house for house in houses if not house.has_solar]
+    non_solar_houses_consumption = [
+        sum(house.df.loc[start_hour + h, "energy_consumption_Wh"] for house in non_solar_houses)
+        for h in hours
+    ]
+
+    # Plotting (use lines to avoid bar-group complexity)
+    plt.figure(figsize=(12, 6))
+    plt.plot(hours, all_consumption, marker='o', label="All Houses", color='gray')
+    plt.plot(hours, smart_consumption, marker='o', label="Smart EV Houses", color='blue')
+    plt.plot(hours, non_smart_consumption, marker='o', label="Non-Smart EV Houses", color='orange')
+    plt.plot(hours, no_ev_consumption, marker='o', label="No EV Houses", color='red')
+    plt.plot(hours, solar_houses_consumption, marker='o', label="Solar Houses", color='green')
+    plt.plot(hours, non_solar_houses_consumption, marker='o', label="Non-Solar Houses", color='purple')
+    plt.xlabel("Hour of Day")
+    plt.ylabel("Energy Consumption (Wh)")
+    plt.title(f"Energy Consumption on Day {day + 1} (All, Smart EV, Non-Smart EV, No EV)")
+    plt.legend()
+    plt.xticks(hours)
+    plt.grid(axis='y')
+    plt.savefig("energy_consumption_day3.png")
