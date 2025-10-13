@@ -2,7 +2,7 @@ from house import House
 import numpy as np
 
 class Car:
-    def __init__(self, car_id, house=None, capacity=60_000, current_charge=0, power=5000, smart=False):
+    def __init__(self, car_id, house=None, capacity=60_000, current_charge=0, power=3200, smart=False):
         self.car_id = car_id
         self.capacity = capacity  # in Wh
         self.current_charge = current_charge  # in Wh
