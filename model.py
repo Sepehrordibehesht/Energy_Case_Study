@@ -201,6 +201,16 @@ if __name__ == "__main__":
         for h in hours
     ]
 
+    #solar energy production for solar houses
+    solar_production = [
+        sum(house.df.loc[start_hour + h, "solar_production_Wh"] for house in solar_houses)
+        for h in hours
+    ]
+
+    #list of solar houses ids
+    solar_house_ids = [house.house_id for house in solar_houses]
+    print(f"Solar house IDs: {solar_house_ids}")
+
     # Plotting (use lines to avoid bar-group complexity)
     plt.figure(figsize=(12, 6))
     plt.plot(hours, all_consumption, marker='o', label="All Houses", color='gray')
