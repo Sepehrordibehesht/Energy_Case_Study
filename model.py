@@ -5,18 +5,43 @@ from car import Car
 from data_frames import hourly_data_solar
 import matplotlib.pyplot as plt
 
+def prompt_int(prompt, min_val=None, max_val=None):
+    """Prompt repeatedly until the user enters a valid integer within bounds."""
+    while True:
+        try:
+            val = input(prompt)
+            ival = int(val)
+            if min_val is not None and ival < min_val:
+                print(f"Value must be >= {min_val}. Try again.")
+                continue
+            if max_val is not None and ival > max_val:
+                print(f"Value must be <= {max_val}. Try again.")
+                continue
+            return ival
+        except ValueError:
+            print("Invalid integer. Please try again.")
+
+# User input (no defaults; user must enter valid integers)
+num_houses = prompt_int("Enter number of houses (integer >= 1): ", min_val=1)
+num_solar = prompt_int(f"Enter number of solar houses (0-{num_houses}): ", min_val=0, max_val=num_houses)
+num_evs = prompt_int(f"Enter number of EVs (0-{num_houses}): ", min_val=0, max_val=num_houses)
+num_smart_evs = prompt_int(f"Enter number of Smart EVs (0-{num_evs}): ", min_val=0, max_val=num_evs)
+num_non_smart_evs = num_evs - num_smart_evs
+
+
+
 # ---------------------------
-# 1️⃣ Create 100 houses
+# 1️⃣ Create houses
 # ---------------------------
 np.random.seed(42)
 random.seed(42)
 
-houses = [House(house_id=i) for i in range(1, 101)]
+houses = [House(house_id=i) for i in range(1, num_houses + 1)]
 
 # ---------------------------
-# 2️⃣ Assign 50 houses to have solar
+# 2️⃣ Assign solar houses
 # ---------------------------
-solar_houses = np.random.choice(houses, 50, replace=False)
+solar_houses = np.random.choice(houses, num_solar, replace=False)
 for house in solar_houses:
     house.has_solar = True
     # Use Wh for hourly production
@@ -24,13 +49,13 @@ for house in solar_houses:
     house.df["solar_production_Wh"] = aligned_solar
 
 # ---------------------------
-# 3️⃣ Assign 20 EVs (10 smart, 10 non-smart)
+# 3️⃣ Assign EVs (smart and non-smart)
 # ---------------------------
 evs = []
-ev_houses = np.random.choice(houses, 20, replace=False)
+ev_houses = np.random.choice(houses, num_evs, replace=False)
 
 for i, house in enumerate(ev_houses, start=1):
-    smart = True if i > 10 else False
+    smart = True if i <= num_smart_evs else False
     current_charge = np.random.randint(1000, 60000)  # initial charge in Wh
     car = Car(car_id=i, house=house, current_charge=current_charge, smart=smart)
     house.assign_ev(car)
@@ -186,7 +211,7 @@ if __name__ == "__main__":
     plt.plot(hours, non_solar_houses_consumption, marker='o', label="Non-Solar Houses", color='purple')
     plt.xlabel("Hour of Day")
     plt.ylabel("Energy Consumption (Wh)")
-    plt.title(f"Energy Consumption on Day {day + 1} (All, Smart EV, Non-Smart EV, No EV)")
+    plt.title(f"Energy Consumption on Day {day + 1} (All, Smart EV, Non-Smart EV, No EV, Solar, Non-Solar)")
     plt.legend()
     plt.xticks(hours)
     plt.grid(axis='y')
