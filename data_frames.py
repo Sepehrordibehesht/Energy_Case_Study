@@ -12,12 +12,12 @@ data_solar_panel["time"] = pd.to_datetime(data_solar_panel["time"])
 data_solar_panel.set_index("time", inplace=True)
 hourly_data_solar = data_solar_panel.resample("h").sum()
 hourly_data_solar = hourly_data_solar.reset_index()
-
+hourly_data_solar["Energy(Wh)"] = hourly_data_solar["Power(W)"]/60
 
 
 
 # Only execute these prints if run directly
 if __name__ == "__main__":
     print("Hourly Data (Solar):")
-    print(hourly_data_solar.head())
+    print(hourly_data_solar.head(100))
     

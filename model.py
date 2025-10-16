@@ -45,7 +45,7 @@ solar_houses = np.random.choice(houses, num_solar, replace=False)
 for house in solar_houses:
     house.has_solar = True
     # Use Wh for hourly production
-    aligned_solar = np.roll(hourly_data_solar["Power(W)"].values[:168], 6)
+    aligned_solar = np.roll(hourly_data_solar["Energy(Wh)"].values[:168], 6)
     house.df["solar_production_Wh"] = aligned_solar
 
 # ---------------------------
@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
     #list of solar houses ids
     solar_house_ids = [house.house_id for house in solar_houses]
-    print(f"Solar house IDs: {solar_house_ids}")
+    # print(f"Solar house IDs: {solar_house_ids}")
 
     # Plotting (use lines to avoid bar-group complexity)
     plt.figure(figsize=(12, 6))

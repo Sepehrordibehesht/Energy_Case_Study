@@ -41,12 +41,12 @@ class House:
         hourly_final = np.maximum(hourly_with_noise, min_baseline_Wh)
 
         # Round to integers (Wh)
-        hourly_final = np.round(hourly_final).astype(int)
+        hourly_final = np.round(hourly_final).astype(float)
 
         self.df = pd.DataFrame({
             "time": hours,
             "energy_consumption_Wh": hourly_final,
-            "solar_production_Wh": 0, 
+            "solar_production_Wh": 0.0,
             "ev_charge_Wh": np.nan            
         })
 
