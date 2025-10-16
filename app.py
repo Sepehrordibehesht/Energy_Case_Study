@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from simulation import run_simulation
 
-st.title("Energy case study — simulation UI")
+st.title("Energy Case Study — Simulation UI")
 
 num_houses = st.number_input("Number of houses", min_value=1, value=100, step=1)
 num_solar = st.number_input("Number of solar houses", min_value=0, max_value=int(num_houses), value=50, step=1)
