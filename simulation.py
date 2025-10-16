@@ -18,7 +18,8 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
     solar_houses = []
     if num_solar > 0:
         solar_houses = list(np.random.choice(houses, num_solar, replace=False))
-        aligned_solar = np.roll(hourly_data_solar["Power(W)"].values[:168], 6)
+        # align solar (model.py used "Energy(Wh)" column and a 6-hour roll)
+        aligned_solar = np.roll(hourly_data_solar["Energy(Wh)"].values[:168], 6)
         for house in solar_houses:
             house.has_solar = True
             house.df["solar_production_Wh"] = aligned_solar
@@ -80,11 +81,37 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
                 ev.house.df.loc[hour, "ev_charge_Wh"] = ev.current_charge
 
     # compute totals and per-hour aggregates
+    total_all_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses)
+    total_smart_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Smart")
+    total_non_smart_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Non-Smart")
+    total_no_ev_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev is None)
+
+    # peak hours totals (6-8 am and 6-9 pm as used in model.py)
+    peak_hours = list(range(6, 9)) + list(range(18, 22))
+    total_peak_Wh = sum(h.df[h.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for h in houses)
+    total_peak_smart_Wh = sum(h.df[h.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Smart")
+    total_peak_non_smart_Wh = sum(h.df[h.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Non-Smart")
+
+    # total energy from solar consumed for charging smart EVs in solar houses (approximate)
+    total_solar_ev_Wh = 0.0
+    for house in solar_houses:
+        if house.ev is not None and house.ev_type == "Smart":
+            for hour in range(168):
+                ev_charge = house.df.loc[hour, "ev_charge_Wh"]
+                # only count hours where EV was present and not full (heuristic from model.py)
+                if not np.isnan(ev_charge) and ev_charge < house.ev.capacity:
+                    solar_used = min(house.df.loc[hour, "solar_production_Wh"], house.ev.power)
+                    total_solar_ev_Wh += float(solar_used)
+
     totals = {
-        "total_all_Wh": sum(h.df["energy_consumption_Wh"].sum() for h in houses),
-        "total_smart_Wh": sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Smart"),
-        "total_non_smart_Wh": sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Non-Smart"),
-        "total_no_ev_Wh": sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev is None),
+        "total_all_Wh": total_all_Wh,
+        "total_smart_Wh": total_smart_Wh,
+        "total_non_smart_Wh": total_non_smart_Wh,
+        "total_no_ev_Wh": total_no_ev_Wh,
+        "total_peak_Wh": total_peak_Wh,
+        "total_peak_smart_Wh": total_peak_smart_Wh,
+        "total_peak_non_smart_Wh": total_peak_non_smart_Wh,
+        "total_solar_ev_Wh": total_solar_ev_Wh
     }
 
     # per-hour totals (168)

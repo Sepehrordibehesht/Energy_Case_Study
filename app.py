@@ -34,6 +34,12 @@ else:
     st.write(f"Non‑Smart EV houses: {totals['total_non_smart_Wh']/1000:.1f} kWh")
     st.write(f"No EV houses: {totals['total_no_ev_Wh']/1000:.1f} kWh")
 
+    # show peak-hour totals and solar used for EV charging
+    st.write(f"Total energy during peak hours (6-8am, 6-9pm): {totals['total_peak_Wh']/1000:.1f} kWh")
+    st.write(f"Peak energy — Smart EV houses: {totals['total_peak_smart_Wh']/1000:.1f} kWh")
+    st.write(f"Peak energy — Non-Smart EV houses: {totals['total_peak_non_smart_Wh']/1000:.1f} kWh")
+    st.write(f"Estimated solar energy used for smart EV charging (solar houses): {totals['total_solar_ev_Wh']/1000:.1f} kWh")
+
     day = st.slider("Select day to plot (0=day1 .. 6=day7)", 0, 6, 1)
     start = day*24
     hours = list(range(24))
