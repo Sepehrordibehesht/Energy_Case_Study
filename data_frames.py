@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 # Read CSV and let pandas use the first row as header
 data_solar_panel = pd.read_csv("Solar_data_year.csv")
