@@ -86,7 +86,15 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
     total_non_smart_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Non-Smart")
     total_no_ev_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev is None)
 
-    # peak hours totals (6-8 am and 6-9 pm as used in model.py)
+    num_smart = sum(1 for h in houses if h.ev_type == "Smart")
+    num_non_smart = sum(1 for h in houses if h.ev_type == "Non-Smart")
+    num_no_ev = sum(1 for h in houses if h.ev is None)
+
+    average_smart_Wh = total_smart_Wh / num_smart if num_smart > 0 else 0.0
+    average_non_smart_Wh = total_non_smart_Wh / num_non_smart if num_non_smart > 0 else 0.0
+    average_no_ev_Wh = total_no_ev_Wh / num_no_ev if num_no_ev > 0 else 0.0
+
+    # peak hours totals (6-8 am and 6-9 pm)
     peak_hours = list(range(6, 9)) + list(range(18, 22))
     total_peak_Wh = sum(h.df[h.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for h in houses)
     total_peak_smart_Wh = sum(h.df[h.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Smart")
@@ -98,7 +106,6 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
         if house.ev is not None and house.ev_type == "Smart":
             for hour in range(168):
                 ev_charge = house.df.loc[hour, "ev_charge_Wh"]
-                # only count hours where EV was present and not full (heuristic from model.py)
                 if not np.isnan(ev_charge) and ev_charge < house.ev.capacity:
                     solar_used = min(house.df.loc[hour, "solar_production_Wh"], house.ev.power)
                     total_solar_ev_Wh += float(solar_used)
@@ -108,10 +115,14 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
         "total_smart_Wh": total_smart_Wh,
         "total_non_smart_Wh": total_non_smart_Wh,
         "total_no_ev_Wh": total_no_ev_Wh,
+        "average_smart_Wh": average_smart_Wh,
+        "average_non_smart_Wh": average_non_smart_Wh,
+        "average_no_ev_Wh": average_no_ev_Wh,
         "total_peak_Wh": total_peak_Wh,
         "total_peak_smart_Wh": total_peak_smart_Wh,
         "total_peak_non_smart_Wh": total_peak_non_smart_Wh,
-        "total_solar_ev_Wh": total_solar_ev_Wh
+        "total_solar_ev_Wh": total_solar_ev_Wh,
+        "counts": {"num_houses": num_houses, "num_smart": num_smart, "num_non_smart": num_non_smart, "num_no_ev": num_no_ev}
     }
 
     # per-hour totals (168)

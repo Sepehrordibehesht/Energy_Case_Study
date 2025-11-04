@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from simulation import run_simulation
 
-st.title("Energy Case Study — Simulation UI")
+st.title("Energy case study — simulation UI")
 
 num_houses = st.number_input("Number of houses", min_value=1, value=100, step=1)
 num_solar = st.number_input("Number of solar houses", min_value=0, max_value=int(num_houses), value=50, step=1)
@@ -28,11 +28,18 @@ else:
 
     res = st.session_state["res"]
     totals = res["totals"]
+
+    # Totals and averages
     st.metric("Total energy (all houses)", f"{totals['total_all_Wh']/1000:.1f} kWh")
-    st.write("Breakdown:")
+    st.write("Breakdown (totals):")
     st.write(f"Smart EV houses: {totals['total_smart_Wh']/1000:.1f} kWh")
     st.write(f"Non‑Smart EV houses: {totals['total_non_smart_Wh']/1000:.1f} kWh")
     st.write(f"No EV houses: {totals['total_no_ev_Wh']/1000:.1f} kWh")
+
+    st.write("Per-house averages (Wh/day):")
+    st.write(f"Avg per Smart EV house: {totals['average_smart_Wh']/7:.1f} Wh/day ({totals['average_smart_Wh']/7000:.2f} kWh/day)")
+    st.write(f"Avg per Non-Smart EV house: {totals['average_non_smart_Wh']/7:.1f} Wh/day ({totals['average_non_smart_Wh']/7000:.2f} kWh/day)")
+    st.write(f"Avg per No-EV house: {totals['average_no_ev_Wh']/7:.1f} Wh/day ({totals['average_no_ev_Wh']/7000:.2f} kWh/day)")
 
     # show peak-hour totals and solar used for EV charging
     st.write(f"Total energy during peak hours (6-8am, 6-9pm): {totals['total_peak_Wh']/1000:.1f} kWh")

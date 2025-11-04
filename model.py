@@ -139,13 +139,19 @@ if __name__ == "__main__":
     total_smart_Wh = sum(house.df["energy_consumption_Wh"].sum() for house in houses if house.ev_type == "Smart")
     total_non_smart_Wh = sum(house.df["energy_consumption_Wh"].sum() for house in houses if house.ev_type == "Non-Smart")
     total_no_ev_Wh = sum(house.df["energy_consumption_Wh"].sum() for house in houses if house.ev is None)
+    average_smart_Wh = total_smart_Wh / num_smart_evs if num_smart_evs > 0 else 0
+    average_non_smart_Wh = total_non_smart_Wh / num_non_smart_evs if num_non_smart_evs > 0 else 0
+    average_no_ev_Wh = total_no_ev_Wh / (num_houses - num_evs) if (num_houses - num_evs) > 0 else 0
 
+    print(f"Average energy consumption per Smart EV house: {average_smart_Wh:.1f} Wh ({average_smart_Wh/1000:.2f} kWh)")
+    print(f"Average energy consumption per Non-Smart EV house: {average_non_smart_Wh:.1f} Wh ({average_non_smart_Wh/1000:.2f} kWh)")
+    print(f"Average energy consumption per No EV house: {average_no_ev_Wh:.1f} Wh ({average_no_ev_Wh/1000:.2f} kWh)")
     print(f"Total all houses: {total_all_Wh} Wh ({total_all_Wh/1000:.1f} kWh)")
     print(f"Total houses with Smart EVs: {total_smart_Wh} Wh ({total_smart_Wh/1000:.1f} kWh)")
     print(f"Total houses with Non‑Smart EVs: {total_non_smart_Wh} Wh ({total_non_smart_Wh/1000:.1f} kWh)")
     print(f"Total houses with no EV: {total_no_ev_Wh} Wh ({total_no_ev_Wh/1000:.1f} kWh)")
 
-    #total energy consumed in peak hours (6-8 am and 6-9 pm) for all houses
+    #total enecharge(rgy consumed in peak hours (6-8 am and 6-9 pm) for all houses
     peak_hours = list(range(6, 9)) + list(range(18, 22))
     total_peak_Wh = sum(house.df[house.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for house in houses)
     print(f"Total energy consumed in peak hours by all houses(6-8 am and 6-9 pm): {total_peak_Wh} Wh ({total_peak_Wh/1000:.1f} kWh)")
