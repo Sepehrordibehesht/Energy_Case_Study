@@ -36,10 +36,10 @@ else:
     st.write(f"Non‑Smart EV houses: {totals['total_non_smart_Wh']/1000:.1f} kWh")
     st.write(f"No EV houses: {totals['total_no_ev_Wh']/1000:.1f} kWh")
 
-    st.write("Per-house averages (Wh/day):")
-    st.write(f"Avg per Smart EV house: {totals['average_smart_Wh']/7:.1f} Wh/day ({totals['average_smart_Wh']/7000:.2f} kWh/day)")
-    st.write(f"Avg per Non-Smart EV house: {totals['average_non_smart_Wh']/7:.1f} Wh/day ({totals['average_non_smart_Wh']/7000:.2f} kWh/day)")
-    st.write(f"Avg per No-EV house: {totals['average_no_ev_Wh']/7:.1f} Wh/day ({totals['average_no_ev_Wh']/7000:.2f} kWh/day)")
+    st.write("Per-house averages (Wh/week):")
+    st.write(f"Avg per Smart EV house: {totals['average_smart_Wh']/7:.1f} Wh/week ({totals['average_smart_Wh']/7000:.2f} kWh/week)")
+    st.write(f"Avg per Non-Smart EV house: {totals['average_non_smart_Wh']/7:.1f} Wh/week ({totals['average_non_smart_Wh']/7000:.2f} kWh/week)")
+    st.write(f"Avg per No-EV house: {totals['average_no_ev_Wh']/7:.1f} Wh/week ({totals['average_no_ev_Wh']/7000:.2f} kWh/week)")
 
     # show peak-hour totals and solar used for EV charging
     st.write(f"Total energy during peak hours (6-8am, 6-9pm): {totals['total_peak_Wh']/1000:.1f} kWh")
