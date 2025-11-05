@@ -47,6 +47,7 @@ else:
     st.write(f"Peak energy — Smart EV houses: {totals['total_peak_smart_Wh']/1000:.1f} kWh")
     st.write(f"Peak energy — Non-Smart EV houses: {totals['total_peak_non_smart_Wh']/1000:.1f} kWh")
     st.write(f"Estimated solar energy used for smart EV charging (solar houses): {totals['total_solar_ev_Wh']/1000:.1f} kWh")
+    st.write(f"Total solar energy produced by solar houses: {totals.get('total_solar_production_Wh', 0)/1000:.1f} kWh")
 
     # show how many smart houses had solar (model.py reported this)
     st.write(f"Smart EV houses with solar (count): {totals['counts'].get('smart_houses_with_solar', 0)}")

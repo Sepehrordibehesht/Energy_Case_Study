@@ -113,6 +113,8 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
                 if not np.isnan(ev_charge) and ev_charge < house.ev.capacity:
                     solar_used = min(house.df.loc[hour, "solar_production_Wh"], house.ev.power)
                     total_solar_ev_Wh += float(solar_used)
+    
+    total_solar_prodction_Wh = sum(house.df["solar_production_Wh"].sum() for house in solar_houses)
 
     totals = {
         "total_all_Wh": total_all_Wh,
@@ -126,7 +128,8 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
         "total_peak_smart_Wh": total_peak_smart_Wh,
         "total_peak_non_smart_Wh": total_peak_non_smart_Wh,
         "total_solar_ev_Wh": total_solar_ev_Wh,
-        "counts": {"num_houses": num_houses, "num_smart": num_smart, "num_non_smart": num_non_smart, "num_no_ev": num_no_ev, "smart_houses_with_solar": total_number_of_smart_houses_with_solar}
+        "counts": {"num_houses": num_houses, "num_smart": num_smart, "num_non_smart": num_non_smart, "num_no_ev": num_no_ev, "smart_houses_with_solar": total_number_of_smart_houses_with_solar},
+        "total_solar_production_Wh": total_solar_prodction_Wh
     }
 
     # per-hour totals (168) — expanded to include more series like model.py

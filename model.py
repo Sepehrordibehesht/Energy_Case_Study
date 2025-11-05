@@ -173,6 +173,8 @@ if __name__ == "__main__":
                     solar_used = min(house.df.loc[hour, "solar_production_Wh"], house.ev.power)
                     total_solar_ev_Wh += solar_used
     print(f"Total energy from solar power consumed for charging smart evs in solar houses: {total_solar_ev_Wh} Wh ({total_solar_ev_Wh/1000:.1f} kWh) in {total_number_of_smart_houses_with_solar} smart houses with solar.")
+    total_prodcued_solar_energy = sum(house.df["solar_production_Wh"].sum() for house in solar_houses)
+    print(f"Total solar energy produced by solar houses: {total_prodcued_solar_energy} Wh ({total_prodcued_solar_energy/1000:.1f} kWh)")
 
     #Now we choose one day and make a bar chart for 24 hours of energy consumption of all houses, smart ev houses, non-smart ev houses, and no ev houses
     day = 2  # choose day 2 (0-based index)
