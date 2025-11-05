@@ -35,7 +35,7 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
             house.assign_ev(car)
             evs.append(car)
 
-    # helper for daily leave/return
+    # helper for daily leave/return (same logic as model.py)
     def sample_leave_return_for_week():
         intervals = []
         for day in range(7):
@@ -48,7 +48,7 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
             intervals.append((leave, ret))
         return intervals
 
-    # build events and mark away hours (ev_charge_Wh = np.nan while away)
+    # build events and mark away hours
     events = {}
     for ev in evs:
         intervals = sample_leave_return_for_week()
@@ -58,7 +58,7 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
             for h in range(leave, min(ret, 168)):
                 ev.house.df.loc[h, "ev_charge_Wh"] = np.nan
 
-    # run simulation
+    # run hourly simulation
     for hour in range(168):
         for (ev, action) in events.get(hour, []):
             if action == "unplug":
@@ -80,7 +80,7 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
                 ev.current_charge = min(ev.capacity, ev.current_charge + charged)
                 ev.house.df.loc[hour, "ev_charge_Wh"] = ev.current_charge
 
-    # compute totals and per-hour aggregates
+    # compute totals and per-hour aggregates (match model.py outputs)
     total_all_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses)
     total_smart_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Smart")
     total_non_smart_Wh = sum(h.df["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Non-Smart")
@@ -102,8 +102,12 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
 
     # total energy from solar consumed for charging smart EVs in solar houses (approximate)
     total_solar_ev_Wh = 0.0
+    total_number_of_smart_houses_with_solar = 0
     for house in solar_houses:
         if house.ev is not None and house.ev_type == "Smart":
+            # count if connected sometime (model.py counted house.ev.connected)
+            if getattr(house.ev, "connected", True):
+                total_number_of_smart_houses_with_solar += 1
             for hour in range(168):
                 ev_charge = house.df.loc[hour, "ev_charge_Wh"]
                 if not np.isnan(ev_charge) and ev_charge < house.ev.capacity:
@@ -122,7 +126,7 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
         "total_peak_smart_Wh": total_peak_smart_Wh,
         "total_peak_non_smart_Wh": total_peak_non_smart_Wh,
         "total_solar_ev_Wh": total_solar_ev_Wh,
-        "counts": {"num_houses": num_houses, "num_smart": num_smart, "num_non_smart": num_non_smart, "num_no_ev": num_no_ev}
+        "counts": {"num_houses": num_houses, "num_smart": num_smart, "num_non_smart": num_non_smart, "num_no_ev": num_no_ev, "smart_houses_with_solar": total_number_of_smart_houses_with_solar}
     }
 
     # per-hour totals (168)

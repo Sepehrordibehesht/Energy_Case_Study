@@ -13,7 +13,8 @@ num_smart = st.number_input("Number of Smart EVs", min_value=0, max_value=int(nu
 # Run simulation and save result in session_state to avoid recomputing on UI interactions
 if st.button("Run simulation"):
     with st.spinner("Running..."):
-        res = run_simulation(int(num_houses), int(num_solar), int(num_evs), int(num_smart))
+        # pass seed for deterministic results consistent with simulation.py
+        res = run_simulation(int(num_houses), int(num_solar), int(num_evs), int(num_smart), seed=42)
     st.session_state["res"] = res
     st.session_state["params"] = (int(num_houses), int(num_solar), int(num_evs), int(num_smart))
 
