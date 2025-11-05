@@ -39,8 +39,8 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
     def sample_leave_return_for_week():
         intervals = []
         for day in range(7):
-            leave_local = 7 + random.choice([-1, 0, 1])
-            return_local = 19 + random.choice([-1, 0, 1])
+            leave_local = 7 + random.choice([-2, -1, 0, 1])
+            return_local = 19 + random.choice([-5, -4, -3, -2, -1, 0, 1, 2 , 3])
             leave = day * 24 + leave_local
             ret = day * 24 + return_local
             if ret <= leave:
