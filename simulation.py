@@ -35,12 +35,13 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
             house.assign_ev(car)
             evs.append(car)
 
-    # helper for daily leave/return (same logic as model.py)
+    # helper for daily leave/return (now matches model.py distribution)
     def sample_leave_return_for_week():
         intervals = []
         for day in range(7):
             leave_local = 7 + random.choice([-1, 0, 1])
-            return_local = 19 + random.choice([-1, 0, 1])
+            # match model.py: allow much wider return variability
+            return_local = 19 + random.choice([-5, -4, -3, -2, -1, 0, 1])
             leave = day * 24 + leave_local
             ret = day * 24 + return_local
             if ret <= leave:
@@ -100,16 +101,15 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
     total_peak_smart_Wh = sum(h.df[h.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Smart")
     total_peak_non_smart_Wh = sum(h.df[h.df["time"].dt.hour.isin(peak_hours)]["energy_consumption_Wh"].sum() for h in houses if h.ev_type == "Non-Smart")
 
-    # total energy from solar consumed for charging smart EVs in solar houses (approximate)
+    # total energy from solar consumed for charging smart EVs in solar houses (match model.py)
     total_solar_ev_Wh = 0.0
     total_number_of_smart_houses_with_solar = 0
     for house in solar_houses:
-        if house.ev is not None and house.ev_type == "Smart":
-            # count if connected sometime (model.py counted house.ev.connected)
-            if getattr(house.ev, "connected", True):
-                total_number_of_smart_houses_with_solar += 1
+        if house.ev is not None and house.ev_type == "Smart" and getattr(house.ev, "connected", True):
+            total_number_of_smart_houses_with_solar += 1
             for hour in range(168):
                 ev_charge = house.df.loc[hour, "ev_charge_Wh"]
+                # ensure car is present this hour
                 if not np.isnan(ev_charge) and ev_charge < house.ev.capacity:
                     solar_used = min(house.df.loc[hour, "solar_production_Wh"], house.ev.power)
                     total_solar_ev_Wh += float(solar_used)
@@ -129,15 +129,24 @@ def run_simulation(num_houses, num_solar, num_evs, num_smart_evs, seed=42):
         "counts": {"num_houses": num_houses, "num_smart": num_smart, "num_non_smart": num_non_smart, "num_no_ev": num_no_ev, "smart_houses_with_solar": total_number_of_smart_houses_with_solar}
     }
 
-    # per-hour totals (168)
+    # per-hour totals (168) — expanded to include more series like model.py
     per_hour_all = np.array([sum(h.df.loc[hr, "energy_consumption_Wh"] for h in houses) for hr in range(168)])
     per_hour_smart = np.array([sum(h.df.loc[hr, "energy_consumption_Wh"] for h in houses if h.ev_type == "Smart") for hr in range(168)])
     per_hour_non_smart = np.array([sum(h.df.loc[hr, "energy_consumption_Wh"] for h in houses if h.ev_type == "Non-Smart") for hr in range(168)])
+    per_hour_no_ev = np.array([sum(h.df.loc[hr, "energy_consumption_Wh"] for h in houses if h.ev is None) for hr in range(168)])
+    per_hour_solar_houses = np.array([sum(h.df.loc[hr, "energy_consumption_Wh"] for h in solar_houses) for hr in range(168)]) if len(solar_houses) > 0 else np.zeros(168)
+    non_solar_houses = [h for h in houses if not h.has_solar]
+    per_hour_non_solar = np.array([sum(h.df.loc[hr, "energy_consumption_Wh"] for h in non_solar_houses) for hr in range(168)]) if len(non_solar_houses) > 0 else np.zeros(168)
+    per_hour_solar_production = np.array([sum(h.df.loc[hr, "solar_production_Wh"] for h in solar_houses) for hr in range(168)]) if len(solar_houses) > 0 else np.zeros(168)
 
     per_hour = {
         "all": per_hour_all,
         "smart": per_hour_smart,
-        "non_smart": per_hour_non_smart
+        "non_smart": per_hour_non_smart,
+        "no_ev": per_hour_no_ev,
+        "solar_houses": per_hour_solar_houses,
+        "non_solar": per_hour_non_solar,
+        "solar_production": per_hour_solar_production
     }
 
     return {

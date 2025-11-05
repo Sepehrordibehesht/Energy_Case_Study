@@ -38,15 +38,18 @@ else:
     st.write(f"No EV houses: {totals['total_no_ev_Wh']/1000:.1f} kWh")
 
     st.write("Per-house averages (Wh/week):")
-    st.write(f"Avg per Smart EV house: {totals['average_smart_Wh']/7:.1f} Wh/week ({totals['average_smart_Wh']/7000:.2f} kWh/week)")
-    st.write(f"Avg per Non-Smart EV house: {totals['average_non_smart_Wh']/7:.1f} Wh/week ({totals['average_non_smart_Wh']/7000:.2f} kWh/week)")
-    st.write(f"Avg per No-EV house: {totals['average_no_ev_Wh']/7:.1f} Wh/week ({totals['average_no_ev_Wh']/7000:.2f} kWh/week)")
+    st.write(f"Avg per Smart EV house: {totals['average_smart_Wh']:.1f} Wh/week ({totals['average_smart_Wh']/1000:.2f} kWh/week)")
+    st.write(f"Avg per Non-Smart EV house: {totals['average_non_smart_Wh']:.1f} Wh/week ({totals['average_non_smart_Wh']/1000:.2f} kWh/week)")
+    st.write(f"Avg per No-EV house: {totals['average_no_ev_Wh']:.1f} Wh/week ({totals['average_no_ev_Wh']/1000:.2f} kWh/week)")
 
     # show peak-hour totals and solar used for EV charging
     st.write(f"Total energy during peak hours (6-8am, 6-9pm): {totals['total_peak_Wh']/1000:.1f} kWh")
     st.write(f"Peak energy — Smart EV houses: {totals['total_peak_smart_Wh']/1000:.1f} kWh")
     st.write(f"Peak energy — Non-Smart EV houses: {totals['total_peak_non_smart_Wh']/1000:.1f} kWh")
     st.write(f"Estimated solar energy used for smart EV charging (solar houses): {totals['total_solar_ev_Wh']/1000:.1f} kWh")
+
+    # show how many smart houses had solar (model.py reported this)
+    st.write(f"Smart EV houses with solar (count): {totals['counts'].get('smart_houses_with_solar', 0)}")
 
     day = st.slider("Select day to plot (0=day1 .. 6=day7)", 0, 6, 1)
     start = day*24
